@@ -1,0 +1,56 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.1.2'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+
+task runGAE(dependsOn: ":backend:appengineRun") {
+    evaluationDependsOn ":backend"
+
+    // otherwise execution hangs while running appengine
+    project(":backend") {
+        appengine {
+            daemon true
+        }
+    }
+
+    doLast {
+        println "GAE started"
+    }
+}
+
+task stopGAE(dependsOn: ":backend:appengineStop") {
+    doLast {
+        println "GAE stopped"
+    }
+}
+
+task runAllTests(dependsOn: ":app:connectedAndroidTest") {
+    mustRunAfter "runGAE"
+    finalizedBy "stopGAE"
+    doLast {
+        println "Tests completed"
+    }
+}
+
+task configureTestTask(dependsOn: ["runGAE", "runAllTests", "stopGAE"]) {
+    doLast {
+        println "Tests configured & done"
+    }
+}
